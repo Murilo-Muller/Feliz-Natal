@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Feliz Natal 🎄</title>
+
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background: radial-gradient(circle at top, #3a0000, #120000);
+    overflow: hidden;
+    font-family: 'Segoe Script', cursive;
+  }
+
+  canvas {
+    display: none;
+  }
+
+  .feliz-natal {
+    display: none;
+    position: absolute;
+    top: 20px;
+    width: 100%;
+    text-align: center;
+    font-size: 2.5rem;
+    color: gold;
+    text-shadow: 0 0 15px gold;
+    z-index: 5;
+  }
+
+  .star {
+    display: none;
+    position: absolute;
+    font-size: 2.2rem;
+    color: gold;
+    text-shadow: 0 0 15px gold, 0 0 35px rgba(255,215,0,0.8);
+    animation: pulse 2s infinite alternate;
+    z-index: 10;
+  }
+
+  @keyframes pulse {
+    from { transform: translateX(-50%) scale(1); }
+    to   { transform: translateX(-50%) scale(1.12); }
+  }
+
+  /* TELA INICIAL */
+  #startScreen {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle, #400000, #120000);
+    z-index: 20;
+  }
+
+  #startButton {
+    font-size: 1.4rem;
+    padding: 16px 28px;
+    border-radius: 30px;
+    border: 2px solid gold;
+    background: rgba(255,215,0,0.15);
+    color: gold;
+    cursor: pointer;
+    text-shadow: 0 0 10px gold;
+  }
+</style>
+</head>
+
+<body>
+
+<!-- TELA INICIAL -->
+<div id="startScreen">
+  <button id="startButton">🎄 Iniciar</button>
+</div>
+
+<div class="feliz-natal">Feliz Natal</div>
+<div class="star">⭐</div>
+
+<audio id="music" loop>
+  <source src="natal.mp3" type="audio/mpeg">
+</audio>
+
+<canvas id="canvas"></canvas>
+
+<script>
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+function resize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener("resize", resize);
+
+const width = canvas.width;
+const height = canvas.height;
+
+const centerX = width / 2;
+const treeTopY = 140;
+const treeHeight = height * 0.6;
+const treeBaseWidth = width * 0.32;
+
+const lights = [];
+const colors = ["#ff3b3b", "#3bff3b", "#ffd93b", "#3bdcff"];
+
+for (let y = 0; y < treeHeight; y += 14) {
+  const progress = y / treeHeight;
+  const layerWidth = treeBaseWidth * progress;
+  const count = Math.floor(4 + progress * 14);
+
+  for (let i = 0; i < count; i++) {
+    lights.push({
+      x: centerX + (Math.random() - 0.5) * layerWidth,
+      y: treeTopY + y + Math.random() * 10,
+      r: 2 + Math.random() * 2.5,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      alpha: Math.random()
+    });
+  }
+}
+
+// Neve
+const snow = [];
+for (let i = 0; i < 120; i++) {
+  snow.push({
+    x: Math.random() * width,
+    y: Math.random() * height,
+    r: Math.random() * 2 + 1,
+    speed: Math.random() * 0.6 + 0.2
+  });
+}
+
+// Estrela
+const star = document.querySelector(".star");
+star.style.left = `${centerX}px`;
+star.style.top = `${treeTopY - 55}px`;
+
+let started = false;
+
+function draw() {
+  if (!started) return;
+
+  ctx.clearRect(0, 0, width, height);
+
+  // Neve
+  ctx.fillStyle = "white";
+  snow.forEach(s => {
+    ctx.globalAlpha = 0.8;
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    ctx.fill();
+
+    s.y += s.speed;
+    if (s.y > height) {
+      s.y = -5;
+      s.x = Math.random() * width;
+    }
+  });
+
+  // Pisca-pisca
+  lights.forEach(l => {
+    l.alpha += (Math.random() - 0.5) * 0.1;
+    l.alpha = Math.max(0.4, Math.min(1, l.alpha));
+
+    ctx.globalAlpha = l.alpha;
+    ctx.fillStyle = l.color;
+    ctx.beginPath();
+    ctx.arc(l.x, l.y, l.r, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  ctx.globalAlpha = 1;
+  requestAnimationFrame(draw);
+}
+
+// INICIAR TUDO
+document.getElementById("startButton").addEventListener("click", () => {
+  document.getElementById("startScreen").style.display = "none";
+
+  document.querySelector(".feliz-natal").style.display = "block";
+  document.querySelector(".star").style.display = "block";
+  canvas.style.display = "block";
+
+  document.getElementById("music").volume = 0.6;
+  document.getElementById("music").play();
+
+  started = true;
+  draw();
+});
+</script>
+
+</body>
+</html>
